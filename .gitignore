@@ -1,0 +1,8 @@
+node_modules/
+dist/
+artifacts/
+image-search/
+research/screenshots/*
+!research/screenshots/README.md
+
+deliverables/

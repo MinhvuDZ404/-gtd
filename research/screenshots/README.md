@@ -1,0 +1,1 @@
+Reference image URLs and provenance are in ../EVIDENCE.md. Public thumbnails were inspected through tools but are intentionally excluded from Git and runtime. Generated runtime QA captures live in ignored artifacts/screenshots and are reproducible with browser tests. No screenshot is used as an interactive screen replacement.

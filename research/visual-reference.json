@@ -1,0 +1,8 @@
+{
+  "status": "provisional",
+  "referenceVersion": "mixed public screenshots; exact build versions unknown",
+  "canvas": {"aspectRatio": 1.777778, "confidence": "high", "source": "R2-R5"},
+  "home": {"signWidthRatio": [0.45,0.55], "navLocation": "bottom", "background": "illustrated horizon and battle vignette", "source": "R3/R5"},
+  "battle": {"camera": "fixed elevated 2D/2.5D appearance", "wave": "upper-left", "pause": "upper-right", "speed": "lower-right", "source": "R4", "confidence": "medium"},
+  "unknown": ["camera zoom behavior", "original actor anchors", "timings", "exact fonts", "damage values", "current roster", "rarity probabilities", "sound design"]
+}
