@@ -6,14 +6,34 @@ An original, playable implementation developed against public **Gold Tower Defen
 
 ## Run
 
+**The game must be served — do not double-click `index.html`.** `index.html` is a Vite entry that loads `./src/main.js` as an ES module with bare imports; opened straight from disk or served as a plain static file it fails and shows a blank page. Use one of these:
+
+### Option 1 — Play immediately, no tools (recommended)
+
+Open the committed **`play.html`** in any browser. It is the whole game inlined into one file: no npm, no build, no server, no internet. Host it anywhere or just double-click it.
+
+### Option 2 — Development server
+
 ```sh
 npm ci
-npm run dev          # 0.0.0.0:5173
-npm run build
-npm run preview      # 0.0.0.0:4173
+npm run dev          # http://localhost:5173
 ```
 
-After building, **open `dist/offline.html` directly** to play without a server, internet, installed service worker, or warm cache. Everything is in that file. It is generated, not committed. Browser storage behavior under `file:` varies: use a stable local HTTP origin for reliable long-term profile storage. The HTTP build additionally caches its shell/assets via a release-versioned service worker.
+### Option 3 — Production build and preview
+
+```sh
+npm ci
+npm run build
+npm run preview      # http://localhost:4173
+```
+
+The build emits `dist/index.html` + hashed assets served over HTTP (shell + assets cached by a release-versioned service worker) and `dist/offline.html`, the single-file standalone build. `play.html` at the repo root is that same standalone build, committed so the project runs out of the box.
+
+### Option 4 — GitHub Pages
+
+Push to `main`; the `Deploy game to GitHub Pages` workflow builds and publishes the site. Enable Pages → Source: GitHub Actions once in repository settings. The published URL is `https://<user>.github.io/<repo>/`.
+
+Browser storage behavior under `file:` varies: use a stable local HTTP origin for reliable long-term profile storage. The HTTP build additionally caches its shell/assets via a release-versioned service worker.
 
 Runtime: local Canvas, DOM, SVG artwork rasterized once to sprites, procedural Web Audio, localStorage. **Zero third-party runtime dependencies or external requests.** npm and Chromium packages are development-only.
 
