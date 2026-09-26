@@ -1,0 +1,32 @@
+import {chromium} from '@playwright/test';
+import {browserOptions} from './browser-support.mjs';
+import {mkdir,writeFile} from 'node:fs/promises';
+import assert from 'node:assert/strict';
+await mkdir('artifacts/screenshots',{recursive:true});
+const browser=await chromium.launch(await browserOptions());
+const context=await browser.newContext({viewport:{width:1366,height:768}});const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
+const base=process.env.BASE_URL||'http://localhost:5173';
+await page.goto(base);await page.locator('[data-action="stages"]').first().waitFor();
+const shot=async name=>page.screenshot({path:`artifacts/screenshots/${name}.png`,timeout:60000,animations:'disabled'});
+await shot('home');
+await page.locator('[data-action="stages"]').first().click();await shot('stage-select');
+await page.locator('[data-action="team"]').click();await shot('team');
+await page.locator('[data-action="battle"]').click();await shot('battle-idle');
+await page.locator('[data-action="site"][data-id="0"]').click();
+await page.locator('[data-action="deselect"]').click();
+await page.locator('[data-action="build"][data-id="cannon"]').click();await page.locator('[data-action="site"][data-id="2"]').click();await page.locator('[data-action="deselect"]').click();
+await page.locator('[data-action="build"][data-id="frost"]').click();await page.locator('[data-action="site"][data-id="4"]').click();await page.locator('[data-action="deselect"]').click();
+await page.locator('[data-action="wave"]').click();await page.waitForTimeout(4500);await shot('battle-combat');
+await page.locator('[data-action="pause"]').click();const before=await page.evaluate(()=>JSON.stringify(window.__goldward.snapshot()));await page.waitForTimeout(500);assert.equal(await page.evaluate(()=>JSON.stringify(window.__goldward.snapshot())),before);await shot('pause');
+await page.locator('[data-action="resume"]').click();await page.locator('[data-action="skill"]').click();
+// Accelerate a genuine, fully equipped simulation for end-to-end result / claim checks.
+await page.evaluate(()=>{const b=window.__goldward.battle;b.gold=10000;for(let i=0;i<10;i++){if(!b.towers.some(t=>t.site===i))b.place(i,i%2?'cannon':'archer');b.upgrade(i);b.upgrade(i);}for(let n=0;n<70000&&!['victory','defeat'].includes(b.state);n++){if(!b.enemies.length&&!b.spawnQueue.length)b.nextWave();if(b.enemies.length>6)b.skill();b.step(1/60);} });
+await page.locator('[role="dialog"]').waitFor();await shot('battle-result');
+const state=await page.evaluate(()=>window.__goldward.battle.state);assert.equal(state,'victory');
+await page.locator('[data-action="claim"]').click();const saved=await page.evaluate(()=>JSON.stringify(window.__goldward.save));await page.reload();await page.locator('[data-action="stages"]').first().waitFor();assert.equal(await page.evaluate(()=>JSON.stringify(window.__goldward.save)),saved);
+await page.locator('[data-action="collection"]').click();await shot('collection');await page.locator('[data-action="train"]').first().click();
+await page.locator('[data-action="home"]').click();await page.locator('[data-action="shop"]').click();await shot('shop');await page.locator('[data-action="summon"]').click();await shot('summon');await page.locator('[data-action="close"]').click();
+const viewports=[[1920,1080],[1600,900],[1366,768],[1280,800],[1024,768],[1080,1920],[1170,2532],[750,1334],[390,844]];
+for(const [width,height]of viewports){await page.setViewportSize({width,height});await page.evaluate(()=>window.__goldward.action('home'));await shot(`home-${width}x${height}`);await page.evaluate(()=>window.__goldward.action('team'));await shot(`team-${width}x${height}`);await page.locator('[data-action="battle"]').click();await shot(`battle-${width}x${height}`);const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth);assert.equal(overflow,false);await page.evaluate(()=>window.__goldward.action('confirm-leave'));}
+const metrics=await page.evaluate(()=>window.__goldward.metrics);assert.deepEqual(errors,[]);await writeFile('artifacts/browser-report.json',JSON.stringify({errors,viewports,metrics,checks:['navigation','placement','pause invariance','skill','victory','claim','save reload','upgrade','summon','viewport overflow'],note:'Victory test uses test-only battle resources. Not a balance acceptance test.'},null,2));
+console.log(JSON.stringify({errors,metrics,result:'PASS'},null,2));await browser.close();
